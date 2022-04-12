@@ -10,6 +10,7 @@ gradlew*
 local.properties
 build/
 support/.cxx
+cmake-build-*/
 
 bin/
 /_CPack_Packages
