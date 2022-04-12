@@ -46,6 +46,7 @@
 #endif
 
 #include "core.h"
+#include "args.h"
 
 #if FMT_GCC_VERSION
 #  define FMT_GCC_VISIBILITY_HIDDEN __attribute__((visibility("hidden")))

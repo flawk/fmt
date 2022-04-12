@@ -451,7 +451,7 @@ FMT_MODULE_EXPORT_BEGIN
 inline std::tm localtime(std::time_t time) {
   struct dispatcher {
     std::time_t time_;
-    std::tm tm_;
+    std::tm tm_{};
 
     dispatcher(std::time_t t) : time_(t) {}
 
@@ -472,7 +472,7 @@ inline std::tm localtime(std::time_t time) {
 #if !FMT_MSC_VER
     bool fallback(detail::null<>) {
       using namespace fmt::detail;
-      std::tm* tm = std::localtime(&time_);
+      std::tm* tm = std::localtime(&time_); // lgtm[cpp/potentially-dangerous-function]
       if (tm) tm_ = *tm;
       return tm != nullptr;
     }
@@ -517,7 +517,7 @@ inline std::tm gmtime(std::time_t time) {
 
 #if !FMT_MSC_VER
     bool fallback(detail::null<>) {
-      std::tm* tm = std::gmtime(&time_);
+      std::tm* tm = std::gmtime(&time_); // lgtm[cpp/potentially-dangerous-function]
       if (tm) tm_ = *tm;
       return tm != nullptr;
     }
