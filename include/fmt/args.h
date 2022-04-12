@@ -28,8 +28,10 @@ template <typename T> const T& unwrap(const std::reference_wrapper<T>& v) {
 }
 
 class dynamic_arg_list {
+#ifdef SMALL_STRINGS_POOL
 public:
   static constexpr std::size_t max_pool_string_size = 256;
+#endif
 
 private:
   // Workaround for clang's -Wweak-vtables. Unlike for regular classes, for
@@ -40,9 +42,11 @@ private:
     std::unique_ptr<node<>> next;
   };
 
+#ifdef SMALL_STRINGS_POOL
   // Pool storage allocation functions.
   static void *allocate_from_pool(std::size_t sz);
   static void free_from_pool(void *ptr);
+#endif
 
   template <typename T> struct typed_node : node<> {
     T value;
@@ -55,6 +59,7 @@ private:
         : value(arg.data(), arg.size()) {}
   };
 
+#ifdef SMALL_STRINGS_POOL
   struct pooled_node : node<> {
     std::array<char, max_pool_string_size> value;
 
@@ -70,10 +75,12 @@ private:
       std::copy(str, str + sz, value.begin());
     }
   };
+#endif
 
   std::unique_ptr<node<>> head_;
 
  public:
+#ifdef SMALL_STRINGS_POOL
   static constexpr std::size_t max_pool_node_size = sizeof(pooled_node);
 
   const char *push_small_string(const char *str, std::size_t sz) {
@@ -83,6 +90,7 @@ private:
     head_          = std::move(new_node);
     return value.data();
   }
+#endif
 
   template <typename T, typename Arg> const T& push(const Arg& arg) {
     auto new_node = std::unique_ptr<typed_node<T>>(new typed_node<T>(arg));
@@ -196,6 +204,7 @@ class dynamic_format_arg_store
       std::string result = fmt::vformat("{} and {} and {}", store);
     \endrst
   */
+#ifdef SMALL_STRINGS_POOL
   template <typename T, typename std::enable_if<
       detail::is_string<typename std::decay<T>::type>::value, int>::type = 0>
    void push_back(const T& arg) {
@@ -219,6 +228,14 @@ class dynamic_format_arg_store
     else
       emplace_arg(detail::unwrap(arg));
   }
+#else
+  template <typename T> void push_back(const T& arg) {
+    if (detail::const_check(need_copy<T>::value))
+      emplace_arg(dynamic_args_.push<stored_type<T>>(arg));
+    else
+      emplace_arg(detail::unwrap(arg));
+  }
+#endif
 
   /**
     \rst

@@ -33,6 +33,8 @@
 #ifndef FMT_FORMAT_H_
 #define FMT_FORMAT_H_
 
+#define SMALL_STRINGS_POOL
+
 #include <cmath>         // std::signbit
 #include <cstdint>       // uint32_t
 #include <cstring>       // std::memcpy
@@ -46,7 +48,9 @@
 #endif
 
 #include "core.h"
+#ifdef SMALL_STRINGS_POOL
 #include "args.h"
+#endif
 
 #if FMT_GCC_VERSION
 #  define FMT_GCC_VISIBILITY_HIDDEN __attribute__((visibility("hidden")))
@@ -2333,6 +2337,7 @@ constexpr bool isfinite(T value) {
   return value - value == 0;  // std::isfinite doesn't support __float128.
 }
 
+
 template <typename T, FMT_ENABLE_IF(is_floating_point<T>::value)>
 FMT_INLINE FMT_CONSTEXPR bool signbit(T value) {
   if (is_constant_evaluated()) {
@@ -3388,8 +3393,9 @@ inline auto format(const Locale& loc, format_string<T...> fmt, T&&... args)
 }
 
 template <typename... T, size_t SIZE, typename Allocator>
-FMT_DEPRECATED auto format_to(basic_memory_buffer<char, SIZE, Allocator>& buf,
-                              format_string<T...> fmt, T&&... args)
+/*FMT_DEPRECATED*/
+auto format_to(basic_memory_buffer<char, SIZE, Allocator>& buf,
+               format_string<T...> fmt, T&&... args)
     -> appender {
   detail::vformat_to(buf, string_view(fmt), fmt::make_format_args(args...));
   return appender(buf);

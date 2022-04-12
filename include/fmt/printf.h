@@ -521,6 +521,14 @@ void vprintf(buffer<Char>& buf, basic_string_view<Char> format,
 }
 FMT_END_DETAIL_NAMESPACE
 
+// For printing into memory_buffer.
+template <typename Char, typename Context>
+/*FMT_DEPRECATED*/ inline void vprintf(detail::buffer<Char>& buf,
+                                       basic_string_view<Char> format,
+                                       basic_format_args<Context> args) {
+  return detail::vprintf(buf, format, args);
+}
+
 template <typename Char>
 using basic_printf_context_t =
     basic_printf_context<detail::buffer_appender<Char>, Char>;
@@ -561,7 +569,7 @@ inline auto vsprintf(
     basic_format_args<basic_printf_context_t<type_identity_t<Char>>> args)
     -> std::basic_string<Char> {
   basic_memory_buffer<Char> buffer;
-  vprintf(buffer, to_string_view(fmt), args);
+  detail::vprintf(buffer, to_string_view(fmt), args);
   return to_string(buffer);
 }
 
@@ -587,7 +595,7 @@ inline auto vfprintf(
     basic_format_args<basic_printf_context_t<type_identity_t<Char>>> args)
     -> int {
   basic_memory_buffer<Char> buffer;
-  vprintf(buffer, to_string_view(fmt), args);
+  detail::vprintf(buffer, to_string_view(fmt), args);
   size_t size = buffer.size();
   return std::fwrite(buffer.data(), sizeof(Char), size, f) < size
              ? -1
@@ -640,7 +648,7 @@ FMT_DEPRECATED auto vfprintf(
     basic_format_args<basic_printf_context_t<type_identity_t<Char>>> args)
     -> int {
   basic_memory_buffer<Char> buffer;
-  vprintf(buffer, to_string_view(fmt), args);
+  detail::vprintf(buffer, to_string_view(fmt), args);
   os.write(buffer.data(), static_cast<std::streamsize>(buffer.size()));
   return static_cast<int>(buffer.size());
 }

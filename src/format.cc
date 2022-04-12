@@ -6,8 +6,10 @@
 // For the license information refer to format.h.
 
 #include "fmt/format-inl.h"
+#ifdef SMALL_STRINGS_POOL
 #include <mutex>
 #include <vector>
+#endif
 
 FMT_BEGIN_NAMESPACE
 namespace detail {
@@ -63,6 +65,7 @@ template FMT_API dragonbox::decimal_fp<float> dragonbox::to_decimal(
 template FMT_API dragonbox::decimal_fp<double> dragonbox::to_decimal(
     double x) noexcept;
 
+#ifdef SMALL_STRINGS_POOL
 namespace {
 
 /// This special mutex has priority inheritance to improve latency.
@@ -173,6 +176,7 @@ void *dynamic_arg_list::allocate_from_pool(std::size_t sz) {
 void dynamic_arg_list::free_from_pool(void *ptr) {
   return node_pool.dealloc(ptr);
 }
+#endif
 
 }  // namespace detail
 
