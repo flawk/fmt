@@ -27,10 +27,10 @@ template <typename T> const T& unwrap(const std::reference_wrapper<T>& v) {
   return static_cast<const T&>(v);
 }
 
-class dynamic_arg_list {
+FMT_API class dynamic_arg_list {
 #ifdef SMALL_STRINGS_POOL
-public:
-  static constexpr std::size_t max_pool_string_size = 256;
+ public:
+  FMT_API static constexpr std::size_t max_pool_string_size = 256;
 #endif
 
 private:
@@ -41,12 +41,6 @@ private:
     virtual ~node() = default;
     std::unique_ptr<node<>> next;
   };
-
-#ifdef SMALL_STRINGS_POOL
-  // Pool storage allocation functions.
-  static void *allocate_from_pool(std::size_t sz);
-  static void free_from_pool(void *ptr);
-#endif
 
   template <typename T> struct typed_node : node<> {
     T value;
@@ -60,6 +54,10 @@ private:
   };
 
 #ifdef SMALL_STRINGS_POOL
+  // Pool storage allocation functions.
+  FMT_API static void* allocate_from_pool(std::size_t sz);
+  FMT_API static void free_from_pool(void* ptr);
+
   struct pooled_node : node<> {
     std::array<char, max_pool_string_size> value;
 
@@ -70,7 +68,7 @@ private:
       free_from_pool(ptr);
     }
 
-    pooled_node(const char *str, std::size_t sz) {
+    FMT_CONSTEXPR pooled_node(const char *str, std::size_t sz) {
       FMT_ASSERT(sz < value.size(), "String is too big");
       std::copy(str, str + sz, value.begin());
     }
@@ -81,7 +79,7 @@ private:
 
  public:
 #ifdef SMALL_STRINGS_POOL
-  static constexpr std::size_t max_pool_node_size = sizeof(pooled_node);
+  FMT_API static constexpr std::size_t max_pool_node_size = sizeof(dynamic_arg_list::pooled_node);
 
   const char *push_small_string(const char *str, std::size_t sz) {
     auto new_node  = std::unique_ptr<pooled_node>(new pooled_node(str, sz));

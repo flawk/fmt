@@ -9,6 +9,7 @@
 #ifdef SMALL_STRINGS_POOL
 #include <mutex>
 #include <vector>
+#include "fmt/args.h"
 #endif
 
 FMT_BEGIN_NAMESPACE
@@ -169,13 +170,14 @@ private:
 
 static dyn_node_pool node_pool;
 
-void *dynamic_arg_list::allocate_from_pool(std::size_t sz) {
+void* dynamic_arg_list::allocate_from_pool(std::size_t sz) {
   return node_pool.alloc(sz);
 }
 
-void dynamic_arg_list::free_from_pool(void *ptr) {
+void dynamic_arg_list::free_from_pool(void* ptr) {
   return node_pool.dealloc(ptr);
 }
+
 #endif
 
 }  // namespace detail

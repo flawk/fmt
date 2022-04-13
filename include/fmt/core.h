@@ -305,6 +305,10 @@ FMT_GCC_PRAGMA("GCC push_options")
 FMT_GCC_PRAGMA("GCC optimize(\"Og\")")
 #endif
 
+#ifndef FMT_HEADER_ONLY
+#define SMALL_STRINGS_POOL
+#endif
+
 FMT_BEGIN_NAMESPACE
 FMT_MODULE_EXPORT_BEGIN
 
