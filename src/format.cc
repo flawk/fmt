@@ -67,17 +67,16 @@ template FMT_API dragonbox::decimal_fp<double> dragonbox::to_decimal(
     double x) noexcept;
 
 #ifdef SMALL_STRINGS_POOL
-namespace {
-
 /// This special mutex has priority inheritance to improve latency.
-class pi_mutex
-{
+class pi_mutex {
+private:
+  pthread_mutex_t m{};
+
 public:
   pi_mutex(const pi_mutex&) = delete;
   pi_mutex& operator=(const pi_mutex&) = delete;
 
-  pi_mutex()
-  {
+  explicit pi_mutex() {
     ::pthread_mutexattr_t mutex_attr;
     ::pthread_mutexattr_init(&mutex_attr);
     ::pthread_mutexattr_setprotocol(&mutex_attr, PTHREAD_PRIO_INHERIT);
@@ -96,19 +95,13 @@ public:
   bool try_lock() { return (::pthread_mutex_trylock(&m) == 0); }
 
   /// Accessor to the raw mutex structure.
-  pthread_mutex_t*       raw() { return &m; }
-  const pthread_mutex_t* raw() const { return &m; }
-
-private:
-  pthread_mutex_t m;
+  pthread_mutex_t* raw() { return &m; }
+  [[nodiscard]] const pthread_mutex_t* raw() const { return &m; }
 };
-
-}
 
 #define NODE_POOL_SIZE (10000u)
 static constexpr uint8_t memory_heap_tag = 0xAA;
-class dyn_node_pool
-{
+class dyn_node_pool {
   /// The extra byte is used to store the memory tag at position 0 in the array.
   using type = std::array<uint8_t, dynamic_arg_list::max_pool_node_size + 1>;
 
@@ -151,7 +144,7 @@ public:
       return;
     }
 
-    uint8_t* base_ptr = reinterpret_cast<uint8_t *>(p) - 1;
+    uint8_t* base_ptr = reinterpret_cast<uint8_t*>(p) - 1;
     if (*base_ptr == memory_heap_tag) {
       // This pointer was allocated using the heap.
       delete reinterpret_cast<type *>(base_ptr);
@@ -168,7 +161,7 @@ private:
   mutable pi_mutex m;
 };
 
-static dyn_node_pool node_pool;
+static dyn_node_pool node_pool; // NOLINT(cert-err58-cpp)
 
 void* dynamic_arg_list::allocate_from_pool(std::size_t sz) {
   return node_pool.alloc(sz);

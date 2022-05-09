@@ -27,7 +27,7 @@ template <typename T> const T& unwrap(const std::reference_wrapper<T>& v) {
   return static_cast<const T&>(v);
 }
 
-FMT_API class dynamic_arg_list {
+class FMT_API dynamic_arg_list {
 #ifdef SMALL_STRINGS_POOL
  public:
   FMT_API static constexpr std::size_t max_pool_string_size = 256;
@@ -59,7 +59,7 @@ private:
   FMT_API static void free_from_pool(void* ptr);
 
   struct pooled_node : node<> {
-    std::array<char, max_pool_string_size> value;
+    std::array<char, max_pool_string_size> value{};
 
     static void* operator new(std::size_t sz) {
       return allocate_from_pool(sz);
@@ -82,7 +82,7 @@ private:
   FMT_API static constexpr std::size_t max_pool_node_size = sizeof(dynamic_arg_list::pooled_node);
 
   const char *push_small_string(const char *str, std::size_t sz) {
-    auto new_node  = std::unique_ptr<pooled_node>(new pooled_node(str, sz));
+    auto new_node  = std::make_unique<pooled_node>(str, sz);
     auto& value    = new_node->value;
     new_node->next = std::move(head_);
     head_          = std::move(new_node);
@@ -209,7 +209,7 @@ class dynamic_format_arg_store
     if (detail::const_check(need_copy<T>::value)) {
       auto view = to_string_view(arg);
       if (view.data() != nullptr &&
-          view.size() + 1 < dynamic_args_.max_pool_string_size)
+          view.size() + 1 < detail::dynamic_arg_list::max_pool_string_size)
         emplace_arg(
             dynamic_args_.push_small_string(view.data(), view.size() + 1));
       else
