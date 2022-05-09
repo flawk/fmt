@@ -65,7 +65,6 @@ template FMT_API dragonbox::decimal_fp<float> dragonbox::to_decimal(
     float x) noexcept;
 template FMT_API dragonbox::decimal_fp<double> dragonbox::to_decimal(
     double x) noexcept;
-
 #ifdef SMALL_STRINGS_POOL
 /// This special mutex has priority inheritance to improve latency.
 class pi_mutex {
@@ -172,7 +171,6 @@ void dynamic_arg_list::free_from_pool(void* ptr) {
 }
 
 #endif
-
 }  // namespace detail
 
 // Workaround a bug in MSVC2013 that prevents instantiation of format_float.

@@ -29,11 +29,10 @@ template <typename T> const T& unwrap(const std::reference_wrapper<T>& v) {
 
 class dynamic_arg_list {
 #ifdef SMALL_STRINGS_POOL
- public:
-  FMT_API static constexpr std::size_t max_pool_string_size = 256;
+  public:
+    FMT_API static constexpr std::size_t max_pool_string_size = 256;
+  private:
 #endif
-
-private:
   // Workaround for clang's -Wweak-vtables. Unlike for regular classes, for
   // templates it doesn't complain about inability to deduce single translation
   // unit for placing vtable. So storage_node_base is made a fake template.
@@ -74,7 +73,6 @@ private:
     }
   };
 #endif
-
   std::unique_ptr<node<>> head_;
 
  public:
@@ -89,7 +87,6 @@ private:
     return value.data();
   }
 #endif
-
   template <typename T, typename Arg> const T& push(const Arg& arg) {
     auto new_node = std::unique_ptr<typed_node<T>>(new typed_node<T>(arg));
     auto& value = new_node->value;
@@ -218,20 +215,13 @@ class dynamic_format_arg_store
   }
 
   template <typename T, FMT_ENABLE_IF(!detail::is_string<T>::value)>
-  void push_back(const T& arg) {
-    if (detail::const_check(need_copy<T>::value))
-      emplace_arg(dynamic_args_.push<stored_type<T>>(arg));
-    else
-      emplace_arg(detail::unwrap(arg));
-  }
-#else
+#endif
   template <typename T> void push_back(const T& arg) {
     if (detail::const_check(need_copy<T>::value))
       emplace_arg(dynamic_args_.push<stored_type<T>>(arg));
     else
       emplace_arg(detail::unwrap(arg));
   }
-#endif
 
   /**
     \rst
