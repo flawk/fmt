@@ -215,8 +215,10 @@ class dynamic_format_arg_store
   }
 
   template <typename T, FMT_ENABLE_IF(!detail::is_string<T>::value)>
+#else
+  template <typename T>
 #endif
-  template <typename T> void push_back(const T& arg) {
+  void push_back(const T& arg) {
     if (detail::const_check(need_copy<T>::value))
       emplace_arg(dynamic_args_.push<stored_type<T>>(arg));
     else
