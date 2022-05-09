@@ -27,7 +27,7 @@ template <typename T> const T& unwrap(const std::reference_wrapper<T>& v) {
   return static_cast<const T&>(v);
 }
 
-class FMT_API dynamic_arg_list {
+class dynamic_arg_list {
 #ifdef SMALL_STRINGS_POOL
  public:
   FMT_API static constexpr std::size_t max_pool_string_size = 256;
@@ -203,8 +203,7 @@ class dynamic_format_arg_store
     \endrst
   */
 #ifdef SMALL_STRINGS_POOL
-  template <typename T, typename std::enable_if<
-      detail::is_string<typename std::decay<T>::type>::value, int>::type = 0>
+  template <typename T, FMT_ENABLE_IF(detail::is_string<T>::value)>
    void push_back(const T& arg) {
     if (detail::const_check(need_copy<T>::value)) {
       auto view = to_string_view(arg);
@@ -218,8 +217,7 @@ class dynamic_format_arg_store
       emplace_arg(detail::unwrap(arg));
   }
 
-  template <typename T, typename std::enable_if<
-      !detail::is_string<typename std::decay<T>::type>::value, int>::type = 0>
+  template <typename T, FMT_ENABLE_IF(!detail::is_string<T>::value)>
   void push_back(const T& arg) {
     if (detail::const_check(need_copy<T>::value))
       emplace_arg(dynamic_args_.push<stored_type<T>>(arg));
