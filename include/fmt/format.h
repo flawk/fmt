@@ -2338,7 +2338,12 @@ struct has_isfinite<T, enable_if_t<sizeof(std::isfinite(T())) != 0>>
 template <typename T, FMT_ENABLE_IF(std::is_floating_point<T>::value&&
                                         has_isfinite<T>::value)>
 FMT_CONSTEXPR20 bool isfinite(T value) {
-  if (is_constant_evaluated()) return !isnan(value - value);
+  if (is_constant_evaluated())
+    return !std::numeric_limits<T>::has_infinity ||
+           (value != +std::numeric_limits<T>::infinity() &&
+            value != -std::numeric_limits<T>::infinity() &&
+            !isnan(value) &&
+            !isnan(value - value));
   return std::isfinite(value);
 }
 template <typename T, FMT_ENABLE_IF(!has_isfinite<T>::value)>
