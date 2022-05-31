@@ -200,10 +200,24 @@ class dynamic_format_arg_store
     \endrst
   */
 #ifdef SMALL_STRINGS_POOL
-  template <typename T, FMT_ENABLE_IF(detail::is_string<T>::value)>
-   void push_back(const T& arg) {
+  //emplate <typename T, FMT_ENABLE_IF(
+  // detail::is_string<T>::value && !std::is_same_v<T, void>
+  // /*&& std::is_convertible<
+  //   decltype(fmt::detail::arg_mapper<Context>::map(std::declval<T>())),
+  //   basic_string_view<char_type>
+  // >::value*/
+  //>
+
+  template <typename T, FMT_ENABLE_IF(
+    detail::is_string<T>::value
+    && std::is_same_v<
+         decltype(detail::to_string_view(std::declval<T>())),
+         basic_string_view<char_type>
+       >
+  )>
+  void push_back(const T& arg) {
     if (detail::const_check(need_copy<T>::value)) {
-      basic_string_view<char_type> view = detail::to_string_view(arg);
+      auto view = detail::to_string_view(arg);
       if (view.data() != nullptr &&
           view.size() + 1 < detail::dynamic_arg_list::max_pool_string_size)
         emplace_arg(
@@ -214,7 +228,13 @@ class dynamic_format_arg_store
       emplace_arg(detail::unwrap(arg));
   }
 
-  template <typename T, FMT_ENABLE_IF(!detail::is_string<T>::value)>
+  template <typename T, FMT_ENABLE_IF(!(
+    detail::is_string<T>::value
+    && std::is_same_v<
+         decltype(detail::to_string_view(std::declval<T>())),
+         basic_string_view<char_type>
+       >
+  ))>
 #else
   template <typename T>
 #endif
