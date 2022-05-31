@@ -203,7 +203,7 @@ class dynamic_format_arg_store
   template <typename T, FMT_ENABLE_IF(detail::is_string<T>::value)>
    void push_back(const T& arg) {
     if (detail::const_check(need_copy<T>::value)) {
-      auto view = detail::to_string_view(arg);
+      basic_string_view<char_type> view = detail::to_string_view(arg);
       if (view.data() != nullptr &&
           view.size() + 1 < detail::dynamic_arg_list::max_pool_string_size)
         emplace_arg(
