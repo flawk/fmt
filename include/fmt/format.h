@@ -1312,7 +1312,8 @@ template <> struct float_info<double> {
 template <typename T>
 struct float_info<T, enable_if_t<std::numeric_limits<T>::digits == 64 ||
                                  std::numeric_limits<T>::digits == 113 ||
-                                 is_float128<T>::value>> {
+                                 is_float128<T>::value ||
+                                 std::is_same_v<T, long double>>> {
   using carrier_uint = detail::uint128_t;
   static const int exponent_bits = 15;
 };
