@@ -17,10 +17,17 @@
 #if FMT_HAS_INCLUDE(<version>)
 #  include <version>
 #endif
+// Checking FMT_CPLUSPLUS for warning suppression in MSVC.
+#if FMT_CPLUSPLUS >= 201703L
+#  if FMT_HAS_INCLUDE(<filesystem>)
+#    include <filesystem>
+#  endif
+#  if FMT_HAS_INCLUDE(<variant>)
+#    include <variant>
+#  endif
+#endif
 
 #ifdef __cpp_lib_filesystem
-#  include <filesystem>
-
 FMT_BEGIN_NAMESPACE
 
 namespace detail {
@@ -50,6 +57,10 @@ inline void write_escaped_path<std::filesystem::path::value_type>(
 
 }  // namespace detail
 
+#if !FMT_MSC_VERSION || FMT_MSC_VERSION >= 1920
+// For MSVC 2017 and earlier using the partial specialization
+// would cause an ambiguity error, therefore we provide it only
+// conditionally.
 template <typename Char>
 struct formatter<std::filesystem::path, Char>
     : formatter<basic_string_view<Char>> {
@@ -62,6 +73,7 @@ struct formatter<std::filesystem::path, Char>
         basic_string_view<Char>(quoted.data(), quoted.size()), ctx);
   }
 };
+#endif
 FMT_END_NAMESPACE
 #endif
 
@@ -71,8 +83,6 @@ struct formatter<std::thread::id, Char> : basic_ostream_formatter<Char> {};
 FMT_END_NAMESPACE
 
 #ifdef __cpp_lib_variant
-#  include <variant>
-
 FMT_BEGIN_NAMESPACE
 template <typename Char> struct formatter<std::monostate, Char> {
   template <typename ParseContext>
