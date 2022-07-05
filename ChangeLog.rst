@@ -5,8 +5,8 @@
   formats. In particular this results in consistent rounding on all platforms
   and removing the ``s[n]printf`` fallback for decimal FP formatting.
 
-* Compile-time floating point formatting now works without header-only mode.
-  For example (`godbolt <https://godbolt.org/z/G37PTeG3b>`__):
+* Compile-time floating point formatting no longer requires the header-only
+  mode. For example (`godbolt <https://godbolt.org/z/G37PTeG3b>`__):
 
   .. code:: c++
 
@@ -20,6 +20,8 @@
      }
 
      constexpr auto answer = compile_time_itoa(0.42);
+
+  works with the default settings.
 
 * Improved the implementation of
   `Dragonbox <https://github.com/jk-jeon/dragonbox>`_, the algorithm used for
@@ -35,10 +37,10 @@
 * Disabled automatic ``std::ostream`` insertion operator (``operator<<``)
   discovery when ``fmt/ostream.h`` is included to prevent ODR violations.
   You can get the old behavior by defining ``FMT_DEPRECATED_OSTREAM`` but this
-  will be removed in the next major release. You can use ``fmt::streamed`` or
-  ``fmt::ostream_formatter`` to enable formatting via ``std::ostream``.
+  will be removed in the next major release. Use ``fmt::streamed`` or
+  ``fmt::ostream_formatter`` to enable formatting via ``std::ostream`` instead.
   
-* Added ``ostream_formatter`` that can be used to write ``formatter``
+* Added ``fmt::ostream_formatter`` that can be used to write ``formatter``
   specializations that perform formatting via ``std::ostream``.
   For example (`godbolt <https://godbolt.org/z/5sEc5qMsf>`__):
 
