@@ -1,5 +1,5 @@
-9.0.0 - TBD
------------
+9.0.0 - 2022-07-04
+------------------
 
 * Switched to the internal floating point formatter for all decimal presentation
   formats. In particular this results in consistent rounding on all platforms
@@ -19,7 +19,7 @@
        return result;
      }
 
-     constexpr auto answer = compile_time_itoa(0.42);
+     constexpr auto answer = compile_time_dtoa(0.42);
 
   works with the default settings.
 
