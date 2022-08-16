@@ -895,6 +895,7 @@ TEST(format_test, runtime_width) {
             fmt::format("{0:{1}}", reinterpret_cast<void*>(0xcafe), 10));
   EXPECT_EQ("x          ", fmt::format("{0:{1}}", 'x', 11));
   EXPECT_EQ("str         ", fmt::format("{0:{1}}", "str", 12));
+  EXPECT_EQ(fmt::format("{:{}}", 42, short(4)), "  42");
 }
 
 TEST(format_test, precision) {
@@ -2177,6 +2178,7 @@ TEST(format_test, format_string_errors) {
   EXPECT_ERROR("{: }", "format specifier requires signed argument", unsigned);
   EXPECT_ERROR("{:{}}", "argument not found", int);
   EXPECT_ERROR("{:.{}}", "argument not found", double);
+  EXPECT_ERROR("{:{}}", "width/precision is not integer", int, double);
   EXPECT_ERROR("{:.2}", "precision not allowed for this argument type", int);
   EXPECT_ERROR("{:s}", "invalid type specifier", int);
   EXPECT_ERROR("{:s}", "invalid type specifier", char);
