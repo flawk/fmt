@@ -7,6 +7,7 @@
 
 #include "fmt/xchar.h"
 
+#include <algorithm>
 #include <complex>
 #include <cwchar>
 #include <vector>
@@ -84,7 +85,7 @@ TEST(xchar_test, format) {
   EXPECT_EQ(L"4.2", fmt::format(L"{}", 4.2));
   EXPECT_EQ(L"abc", fmt::format(L"{}", L"abc"));
   EXPECT_EQ(L"z", fmt::format(L"{}", L'z'));
-  EXPECT_THROW(fmt::format(L"{:*\x343E}", 42), fmt::format_error);
+  EXPECT_THROW(fmt::format(fmt::runtime(L"{:*\x343E}"), 42), fmt::format_error);
   EXPECT_EQ(L"true", fmt::format(L"{}", true));
   EXPECT_EQ(L"a", fmt::format(L"{0}", 'a'));
   EXPECT_EQ(L"a", fmt::format(L"{0}", L'a'));
@@ -98,8 +99,9 @@ TEST(xchar_test, is_formattable) {
 }
 
 TEST(xchar_test, compile_time_string) {
+  EXPECT_EQ(fmt::format(fmt::wformat_string<int>(L"{}"), 42), L"42");
 #if defined(FMT_USE_STRING_VIEW) && FMT_CPLUSPLUS >= 201703L
-  EXPECT_EQ(L"42", fmt::format(FMT_STRING(std::wstring_view(L"{}")), 42));
+  EXPECT_EQ(fmt::format(FMT_STRING(std::wstring_view(L"{}")), 42), L"42");
 #endif
 }
 
@@ -246,7 +248,7 @@ TEST(xchar_test, sign_not_truncated) {
   wchar_t format_str[] = {
       L'{', L':',
       '+' | static_cast<wchar_t>(1 << fmt::detail::num_bits<char>()), L'}', 0};
-  EXPECT_THROW(fmt::format(format_str, 42), fmt::format_error);
+  EXPECT_THROW(fmt::format(fmt::runtime(format_str), 42), fmt::format_error);
 }
 
 TEST(xchar_test, chrono) {
@@ -311,8 +313,8 @@ TEST(chrono_test_wchar, time_point) {
     auto sys_output = system_wcsftime(spec, &tm);
 
     auto fmt_spec = fmt::format(L"{{:{}}}", spec);
-    EXPECT_EQ(sys_output, fmt::format(fmt_spec, t1));
-    EXPECT_EQ(sys_output, fmt::format(fmt_spec, tm));
+    EXPECT_EQ(sys_output, fmt::format(fmt::runtime(fmt_spec), t1));
+    EXPECT_EQ(sys_output, fmt::format(fmt::runtime(fmt_spec), tm));
   }
 }
 
@@ -343,6 +345,7 @@ TEST(xchar_test, escape_string) {
 TEST(xchar_test, to_wstring) { EXPECT_EQ(L"42", fmt::to_wstring(42)); }
 
 #ifndef FMT_STATIC_THOUSANDS_SEPARATOR
+
 template <typename Char> struct numpunct : std::numpunct<Char> {
  protected:
   Char do_decimal_point() const override { return '?'; }
@@ -440,16 +443,16 @@ TEST(locale_test, wformat) {
             fmt::format(small_grouping_loc, L"{:L}", max_value<uint32_t>()));
 }
 
-TEST(locale_test, double_formatter) {
+TEST(locale_test, int_formatter) {
   auto loc = std::locale(std::locale(), new special_grouping<char>());
   auto f = fmt::formatter<int>();
   auto parse_ctx = fmt::format_parse_context("L");
   f.parse(parse_ctx);
-  char buf[10] = {};
-  fmt::basic_format_context<char*, char> format_ctx(
-      buf, {}, fmt::detail::locale_ref(loc));
-  *f.format(12345, format_ctx) = 0;
-  EXPECT_STREQ("12,345", buf);
+  auto buf = fmt::memory_buffer();
+  fmt::basic_format_context<fmt::appender, char> format_ctx(
+      fmt::appender(buf), {}, fmt::detail::locale_ref(loc));
+  f.format(12345, format_ctx);
+  EXPECT_EQ(fmt::to_string(buf), "12,345");
 }
 
 FMT_BEGIN_NAMESPACE
@@ -511,6 +514,10 @@ TEST(locale_test, chrono_weekday) {
         Contains(fmt::format(loc, L"{:L}", mon)));
   }
   std::locale::global(loc_old);
+}
+
+TEST(locale_test, sign) {
+  EXPECT_EQ(fmt::format(std::locale(), L"{:L}", -50), L"-50");
 }
 
 #endif  // FMT_STATIC_THOUSANDS_SEPARATOR
