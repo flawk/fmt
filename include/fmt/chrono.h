@@ -22,6 +22,15 @@
 
 FMT_BEGIN_NAMESPACE
 
+// Check if std::chrono::utc_timestamp is available.
+#ifndef FMT_USE_UTC_TIME
+#  ifdef __cpp_lib_chrono
+#    define FMT_USE_UTC_TIME (__cpp_lib_chrono >= 201907L)
+#  else
+#    define FMT_USE_UTC_TIME 0
+#  endif
+#endif
+
 // Enable tzset.
 #ifndef FMT_USE_TZSET
 // UWP doesn't provide _tzset.
