@@ -2014,6 +2014,25 @@ struct formatter<std::chrono::time_point<std::chrono::system_clock, Duration>,
   }
 };
 
+#if FMT_USE_UTC_TIME
+template <typename Char, typename Duration>
+struct formatter<std::chrono::time_point<std::chrono::utc_clock, Duration>,
+                 Char> : formatter<std::tm, Char> {
+  FMT_CONSTEXPR formatter() {
+    basic_string_view<Char> default_specs =
+        detail::string_literal<Char, '%', 'F', ' ', '%', 'T'>{};
+    this->do_parse(default_specs.begin(), default_specs.end());
+  }
+
+  template <typename FormatContext>
+  auto format(std::chrono::time_point<std::chrono::utc_clock> val,
+              FormatContext& ctx) const -> decltype(ctx.out()) {
+    return formatter<std::tm, Char>::format(
+        localtime(std::chrono::utc_clock::to_sys(val)), ctx);
+  }
+};
+#endif
+
 template <typename Char> struct formatter<std::tm, Char> {
  private:
   enum class spec {
